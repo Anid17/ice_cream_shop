@@ -1,24 +1,43 @@
 <?php
 declare(strict_types=1);
-$pdo = require dirname(__DIR__, 2) . '/config.php';
-require dirname(__DIR__, 1) . '/dao/BaseDao.php';
-require dirname(__DIR__, 1) . '/dao/OrdersDao.php';
+require_once __DIR__ . '/BaseDao.php';
 
-$dao = new OrdersDao($pdo);
+class OrdersDao extends BaseDao {
+    public function __construct(PDO $pdo) {
+        parent::__construct($pdo, 'orders');
+    }
 
+    public function create(array $data): int {
+        $sql = "INSERT INTO orders (user_id, total)
+                VALUES (:user_id, :total)";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ':user_id' => (int)$data['user_id'],
+            ':total'   => isset($data['total']) ? (float)$data['total'] : null,
+        ]);
+        return (int)$this->pdo->lastInsertId();
+    }
 
-$id = $dao->create([
-  'user_id' => 2,
-  'status'  => 'pending',
-  'total'   => 0.00
-]);
-echo "Created order id = $id\n";
+    public function update(int $id, array $data): bool {
+        $fields = [];
+        $params = [':id' => $id];
 
-print_r($dao->getById($id));
+        foreach (['user_id', 'total'] as $col) {
+            if (array_key_exists($col, $data)) {
+                $fields[] = "$col = :$col";
+                $val      = $data[$col];
 
-echo "Update: " . ($dao->update($id, ['status'=>'paid', 'total'=>5.60]) ? "OK":"FAIL") . "\n";
+                if ($col === 'user_id') $val = (int)$val;
+                if ($col === 'total')   $val = (float)$val;
 
-$all = $dao->getAll([], ['limit'=>10]);
-echo "Fetched: " . count($all) . "\n";
+                $params[":$col"] = $val;
+            }
+        }
 
-echo "Delete: " . ($dao->delete($id) ? "OK":"FAIL") . "\n";
+        if (!$fields) return false;
+
+        $sql  = "UPDATE orders SET " . implode(', ', $fields) . " WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute($params);
+    }
+}
