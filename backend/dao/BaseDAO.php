@@ -4,45 +4,44 @@ declare(strict_types=1);
 abstract class BaseDao {
     protected PDO $pdo;
     protected string $table;
-    protected string $pk = 'id';
+    protected string $pk;
 
-    public function __construct(PDO $pdo, string $table) {
-        $this->pdo = $pdo;
+    public function __construct(PDO $pdo, string $table, string $pk = 'id') {
+        $this->pdo   = $pdo;
         $this->table = $table;
+        $this->pk    = $pk;
     }
 
     public function getById(int $id): ?array {
-        $stmt = $this->pdo->prepare("SELECT * FROM {$this->table} WHERE {$this->pk} = :id");
+        $sql  = "SELECT * FROM {$this->table} WHERE {$this->pk} = :id";
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':id' => $id]);
-        $row = $stmt->fetch();
-        return $row ?: null;
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row === false ? null : $row;
     }
 
-    public function getAll(array $filters = [], array $pagination = []): array {
-        $sql = "SELECT * FROM {$this->table}";
+    public function getAll(array $filters = []): array {
+        $sql    = "SELECT * FROM {$this->table}";
         $params = [];
-        $where = [];
 
-        if (array_key_exists('is_active', $filters)) {
-            $where[] = "is_active = :is_active";
-            $params[':is_active'] = (int)$filters['is_active'];
+        if (!empty($filters)) {
+            $clauses = [];
+            foreach ($filters as $col => $val) {
+                $clauses[]       = "$col = :$col";
+                $params[":$col"] = $val;
+            }
+            $sql .= " WHERE " . implode(' AND ', $clauses);
         }
 
-        if ($where) $sql .= " WHERE " . implode(' AND ', $where);
-        if (isset($pagination['limit']))  $sql .= " LIMIT :limit";
-        if (isset($pagination['offset'])) $sql .= " OFFSET :offset";
-
         $stmt = $this->pdo->prepare($sql);
-        foreach ($params as $k=>$v) $stmt->bindValue($k, $v);
-        if (isset($pagination['limit']))  $stmt->bindValue(':limit', (int)$pagination['limit'], PDO::PARAM_INT);
-        if (isset($pagination['offset'])) $stmt->bindValue(':offset',(int)$pagination['offset'],PDO::PARAM_INT);
-
-        $stmt->execute();
-        return $stmt->fetchAll();
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function delete(int $id): bool {
-        $stmt = $this->pdo->prepare("DELETE FROM {$this->table} WHERE {$this->pk} = :id");
+        $sql  = "DELETE FROM {$this->table} WHERE {$this->pk} = :id";
+        $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([':id' => $id]);
     }
 }
