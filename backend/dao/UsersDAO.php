@@ -19,6 +19,7 @@ class UsersDao extends BaseDao {
         return (int)$this->pdo->lastInsertId();
     }
 
+    
     public function update(int $id, array $data): bool {
         $fields = [];
         $params = [':id' => $id];
@@ -38,4 +39,12 @@ class UsersDao extends BaseDao {
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute($params);
     }
+
+    public function getByEmail(string $email): ?array {
+  $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
+  $stmt->execute([':email' => $email]);
+  $row = $stmt->fetch(PDO::FETCH_ASSOC);
+  return $row ?: null;
+}
+
 }

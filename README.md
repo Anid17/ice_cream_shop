@@ -93,3 +93,101 @@ Milestone 3 – Services, Business Logic & OpenAPI
 -Implemented OpenAPI Documentation (openapi.yaml).
 
 -Added Swagger UI documentation page (frontend/docs.html) that loads the OpenAPI spec.
+
+Milestone 4 – Authentication, Authorization & Middleware
+
+✔️ Achievements:
+
+-Implemented JWT-based authentication using FlightPHP.
+
+-Added secure user registration and login endpoints:
+    /api/auth/register
+    /api/auth/login
+
+-Passwords are securely hashed using password_hash() (BCRYPT).
+
+-Implemented authentication middleware:
+-Extracts and validates JWT tokens from Authorization: Bearer header.
+-Attaches authenticated user data to request lifecycle.
+-Implemented role-based authorization:
+
+-Admin users (role_id = 1) can perform full CRUD on all entities.
+-Regular users (role_id = 2) have restricted access (read-only where applicable).
+
+-Protected backend routes using middleware:
+-Unauthorized requests return 401 Unauthorized.
+
+-Frontend fully connected with backend:
+Login and Register forms communicate with backend API.
+JWT token stored in localStorage.
+Role-based UI rendering (admin-only buttons hidden for regular users).
+Admin actions enforced on both frontend and backend.
+Added dynamic frontend behavior:
+Authenticated users can access protected features.
+Admin-only controls (e.g., delete product) shown only for admins.
+
+
+
+📁 Project Structure
+
+project-root/
+│── frontend/
+│   ├── index.html
+│   ├── docs.html  (Swagger UI)
+│   ├── css/
+│   ├── js/
+│   └── views/
+│
+│── backend/
+│   ├── index.php
+│   ├── config.php
+│   ├── openapi.yaml
+│   ├── dao/
+│   ├── services/
+│   └── flight/
+│
+│── database/
+│   └── ice_cream_data.sql
+│
+│── docs/
+│   └── erd.png
+│
+└── .env
+
+
+
+🗄️ Database
+Main Entities:
+
+| Entity             | Description                |
+| ------------------ | -------------------------- |
+| users              | registered users           |
+| products           | ice cream products         |
+| categories         | product categories         |
+| product_categories | many-to-many linking table |
+| orders             | customer orders            |
+| reviews            | ratings & reviews          |
+
+
+🔧 Tech Stack
+Backend: 
+    PHP
+    FlightPHP
+    PDO
+
+Frontend: 
+    HTML5
+    CSS
+    Bootstrap
+    JS
+    SPA
+
+Other: 
+    MySql
+    SWagger UI
+    OpenAPI 3.0
+
+
+📜 Author
+    Anid Ali
+    
