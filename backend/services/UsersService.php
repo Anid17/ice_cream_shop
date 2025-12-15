@@ -37,7 +37,8 @@ class UsersService {
         $payload = [
             'username'      => $data['username'],
             'email'         => $data['email'],
-            'password_hash' => $data['password'],
+            'password_hash' => password_hash($data['password'], PASSWORD_BCRYPT),
+
         ];
 
         $id = $this->dao->create($payload);
@@ -55,7 +56,7 @@ class UsersService {
         foreach (['username', 'email', 'password'] as $key) {
             if (isset($data[$key])) {
                 if ($key === 'password') {
-                    $updateData['password_hash'] = $data['password'];
+                    $updateData['password_hash'] = password_hash($data['password'], PASSWORD_BCRYPT);
                 } else {
                     $updateData[$key] = $data[$key];
                 }
